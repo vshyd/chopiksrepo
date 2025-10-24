@@ -4,3 +4,6 @@ aiohttp
 motor
 sentence_transformers
 keybert
+feedparser
+trafilatura
+langdetect
