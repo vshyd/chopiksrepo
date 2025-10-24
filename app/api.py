@@ -1,5 +1,6 @@
 import time 
 from fastapi import FastAPI, Request, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from app.llm import run
@@ -9,6 +10,13 @@ from app.logger import setup_logger
 
 app = FastAPI()
 logger = setup_logger('api')
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 mongo: MongoDB = None
 
