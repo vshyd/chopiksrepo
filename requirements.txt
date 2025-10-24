@@ -4,3 +4,4 @@ aiohttp
 motor
 sentence_transformers
 keybert
+openai
