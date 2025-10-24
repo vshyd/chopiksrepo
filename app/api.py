@@ -1,6 +1,7 @@
 import time 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from app.db import get_data
 from app.logger import setup_logger
 
@@ -30,4 +31,5 @@ async def log_requests(request: Request, call_next):
 @app.get("/data")
 async def read_data():
     logger.info('call to /data')
-    return await get_data()
+    data = await get_data()
+    return data
