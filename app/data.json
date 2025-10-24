@@ -1,0 +1,41 @@
+[
+  {
+    "_id": "news_001",
+    "title": "Telecom Giant Announces 5G Expansion Across Europe",
+    "url": "https://example.com/news/5g-expansion",
+    "source": "Telecom Daily",
+    "date_published": "2025-10-23T10:00:00Z",
+    "category": "5G",
+    "tags": ["5G", "network", "Europe", "infrastructure"],
+    "summary": "The company plans to roll out 5G services in 10 new European countries by the end of 2026.",
+    "importance_score": 9,
+    "content": "Full article text here...",
+    "language": "en"
+  },
+  {
+    "_id": "news_002",
+    "title": "Regulatory Changes Impact Mobile Data Pricing",
+    "url": "https://example.com/news/regulation-pricing",
+    "source": "Telecom Insights",
+    "date_published": "2025-10-22T14:30:00Z",
+    "category": "Regulation",
+    "tags": ["pricing", "mobile", "policy", "Europe"],
+    "summary": "New regulations will lower roaming charges and standardize data plans across member states.",
+    "importance_score": 7,
+    "content": "Full article text here...",
+    "language": "en"
+  },
+  {
+    "_id": "news_003",
+    "title": "Telecom Startup Secures $50M Funding for Satellite Internet",
+    "url": "https://example.com/news/startup-satellite",
+    "source": "Tech Telecom News",
+    "date_published": "2025-10-24T08:15:00Z",
+    "category": "Investment",
+    "tags": ["startup", "satellite", "funding", "broadband"],
+    "summary": "The startup aims to provide affordable satellite internet to rural areas by 2027.",
+    "importance_score": 8,
+    "content": "Full article text here...",
+    "language": "en"
+  }
+]

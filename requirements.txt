@@ -2,3 +2,5 @@ fastapi
 uvicorn
 aiohttp
 motor
+sentence_transformers
+keybert
