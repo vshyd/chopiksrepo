@@ -1,4 +1,5 @@
 import motor.motor_asyncio
+import hashlib
 import os
 from app.logger import setup_logger
 
@@ -25,15 +26,15 @@ class MongoDB:
                 os.getenv("MONGO_URL", "mongodb://mongo:27017"),
                 os.getenv("MONGO_DB", "scraper_db")
             )
-            cls._instance.raw_data_collection = await cls._instance._init_collection("raw_data")
+            cls._instance.raw_data_collection = await cls._instance._init_collection("raw_data", [("hash", True), ("lang", False), ("published", False)])
+            cls._instance.processed_data_collection = await cls._instance._init_collection("processed_data", [("hash", True), ("processed_at", False)])
         return cls._instance
 
 
-    async def _init_collection(self, collection_name: str):
+    async def _init_collection(self, collection_name: str, indexes:list):
         collection = self.db[collection_name]
-        await collection.create_index("hash", unique=True)
-        await collection.create_index("published")
-        await collection.create_index("lang")
+        for index, is_unique in indexes:
+            await collection.create_index(index, unique=is_unique)
         self.logger.info(f"Collection '{collection_name}' initialized with indexes.")
         return collection
 
@@ -47,6 +48,17 @@ class MongoDB:
         except Exception as e:
             self.logger.warning(f"Error inserting documents: {e}")
 
+    
+
+    async def save_processed_data(self, data:list[dict]):
+        if not data:
+            return 
+        try:
+            await self.processed_data_collection.insert_many(data, ordered=False)
+            self.logger.info(f"Saved{len(data)} documents")
+        except Exception as e:
+            self.logger.warning(f"Error inserting documents: {e}")
+
 
     async def get_data(self):
         self.logger.info("Going to retrieve docs:")
@@ -56,6 +68,7 @@ class MongoDB:
             doc["_id"] = str(doc["_id"])
             docs.append(doc)
         return docs
+
 
     async def get_filtered_data(self, *, lang=None, source=None, days=None, text_contains=None, limit=50):
         query = {}
@@ -79,5 +92,3 @@ class MongoDB:
             doc["_id"] = str(doc["_id"])
             docs.append(doc)
         return docs
-
-    

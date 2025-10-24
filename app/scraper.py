@@ -7,6 +7,7 @@ import trafilatura
 from langdetect import detect
 from app.logger import setup_logger
 from app.db import MongoDB 
+from app.llm import PostAnalyzer
 
 class NewsScraper:
     def __init__(self, feeds: list[str], concurrency: int = 15):
@@ -20,6 +21,7 @@ class NewsScraper:
     async def init(self):
         """Async initialization Mongo and HTTP-session"""
         self.mongo = await MongoDB.create()
+        self.post_analyzer = PostAnalyzer(self.mongo)
         self.session = aiohttp.ClientSession(headers={"User-Agent": "async-trafilatura/1.0"})
         self.logger.info("Scraper initialized.")
 
@@ -104,6 +106,7 @@ async def main():
         "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
     ]
     scraper = NewsScraper(FEEDS, concurrency=15)
+    await scraper.init()
     await scraper.run()
 
 

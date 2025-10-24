@@ -1,107 +1,126 @@
+import os
 import json
+import asyncio
 from sentence_transformers import SentenceTransformer, util
 from keybert import KeyBERT
-from openai import OpenAI
-import os
-import time
+from openai import AsyncOpenAI
+from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime, timedelta
 
-SCW_ACCESS_KEY = os.getenv("SCW_ACCESS_KEY")
-SCW_SECRET_KEY = os.getenv("SCW_SECRET_KEY")
-SCW_DEFAULT_ORGANIZATION_ID = os.getenv("SCW_DEFAULT_ORGANIZATION_ID")
-SCW_DEFAULT_PROJECT_ID = os.getenv("SCW_DEFAULT_PROJECT_ID")
-SCW_DEFAULT_REGION = os.getenv("SCW_DEFAULT_REGION")
-SCW_DEFAULT_ZONE = os.getenv("SCW_DEFAULT_ZONE")
+from app.db import MongoDB 
+from app.logger import setup_logger
 
-def run():
-    # 1️⃣ Wczytanie postów z pliku JSON
-    with open("app/data.json", "r", encoding="utf-8") as f:
-        data = json.load(f) 
+class PostAnalyzer:
+    def __init__(self, mongo: MongoDB, concurrency: int = 5):
+        self.mongo = mongo
+        self.semaphore = asyncio.Semaphore(concurrency)
 
-    if isinstance(data[0], dict) and "text" in data[0]:
-        posts = [p["text"] for p in data]
-    
-    print("-------")
-    print("POSTS")
-    print(posts)
-    print("-------")
+        self.scw_secret_key = os.getenv("SCW_SECRET_KEY")
+        self.scw_project_id = os.getenv("SCW_DEFAULT_PROJECT_ID")
 
-    categories = {
-        "Market Trends": "Posts about telecom market trends, consumer behavior, market insights, competitive analysis",
-        "Product Launches": "Posts about new products, services, features, technology releases in telecom",
-        "Customer Feedback": "Posts about customer reviews, complaints, satisfaction, opinions",
-        "Marketing Campaigns": "Posts about marketing campaigns, ads, promotions, social media strategies",
-        "Sales & Partnerships": "Posts about sales deals, partnerships, collaborations, revenue updates"
-    }
+        self.client = AsyncOpenAI(
+            base_url=f"https://api.scaleway.ai/{self.scw_project_id}/v1",
+            api_key=self.scw_secret_key,
+        )
 
-    # 3️⃣ Modele embeddings
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    kw_model = KeyBERT('all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.kw_model = KeyBERT('all-MiniLM-L6-v2')
 
-    # 4️⃣ Embeddings kategorii
-    category_embeddings = {cat: model.encode(desc, convert_to_tensor=True) 
-                        for cat, desc in categories.items()}
+        self.categories = {
+            "Market Trends": "Posts about telecom market trends, consumer behavior, market insights, competitive analysis",
+            "Product Launches": "Posts about new products, services, features, technology releases in telecom",
+            "Customer Feedback": "Posts about customer reviews, complaints, satisfaction, opinions",
+            "Marketing Campaigns": "Posts about marketing campaigns, ads, promotions, social media strategies",
+            "Sales & Partnerships": "Posts about sales deals, partnerships, collaborations, revenue updates"
+        }
 
-    client = OpenAI(base_url=f"https://api.scaleway.ai/{SCW_DEFAULT_PROJECT_ID}/v1", api_key=SCW_SECRET_KEY)
-    
-    # 5️⃣ Przetwarzanie postów
-    results = []
-    for post in posts:
-        # klasyfikacja
-        post_emb = model.encode(post, convert_to_tensor=True)
-        sims = {cat: util.cos_sim(post_emb, emb).item() for cat, emb in category_embeddings.items()}
+        self.category_embeddings = {
+            cat: self.model.encode(desc, convert_to_tensor=True)
+            for cat, desc in self.categories.items()
+        }
+
+        self.logger = setup_logger("PostAnalyzer")
+
+
+    def categorize_post(self, post: str) -> str:
+        """Defines category by an embedding"""
+        post_emb = self.model.encode(post, convert_to_tensor=True)
+        sims = {cat: util.cos_sim(post_emb, emb).item() for cat, emb in self.category_embeddings.items()}
         best_cat = max(sims, key=sims.get)
-        if sims[best_cat] < 0.3:
-            best_cat = "Uncategorized"
-        
-        # kluczowe słowa
-        keywords = kw_model.extract_keywords(post, keyphrase_ngram_range=(1,2), stop_words='english', top_n=5)
+        return best_cat if sims[best_cat] >= 0.3 else "Uncategorized"
 
+
+    def extract_keywords(self, post: str) -> list[str]:
+        return [
+            kw[0]
+            for kw in self.kw_model.extract_keywords(
+                post, keyphrase_ngram_range=(1, 2), stop_words='english', top_n=5
+            )
+        ]
+
+    async def evaluate_post(self, post: str) -> dict:
+        """sends a request to LLM"""
         prompt = f"""
         You are an expert in marketing and sales within the telecommunications industry.
         Evaluate, on a scale from 0 to 10, how important this post is for a C-level manager.
-        By "important," we mean how much the information in this post could influence the company's strategy, revenue, customer relations, or brand reputation, and must get a areaction very fast.
-        By "summary", we mean the short description of the whole text, 1 sentence with main idea, that might be interested for the manager.
+        Also provide a one-sentence summary.
         Post text:
         "{post}"
 
         Respond in JSON format:
-        {{"importance": number between 0 and 10, "summary": "one-sentence post description"}}
+        {{"importance": number between 0 and 10, "summary": "one-sentence description"}}
         """
 
-        try:
-            response = client.chat.completions.create(
-                model="qwen3-235b-a22b-instruct-2507", 
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.3,
-                max_tokens=100
-            )
-
-            reply = response.choices[0].message.content.strip()
-      
+        async with self.semaphore:
             try:
-                parsed = json.loads(reply)
-            except json.JSONDecodeError:
-                parsed = {"importance": None, "summary": reply}
+                response = await self.client.chat.completions.create(
+                    model="qwen3-235b-a22b-instruct-2507",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.3,
+                    max_tokens=100
+                )
 
-            importance = parsed.get("importance")
-            justification = parsed.get("summary")
-            results.append(post)
+                reply = response.choices[0].message.content.strip()
+                try:
+                    parsed = json.loads(reply)
+                except json.JSONDecodeError:
+                    parsed = {"importance": None, "summary": reply}
+                return parsed
 
-        except Exception as e:
-            print(f"❌ Error {e}")
+            except Exception as e:
+                print(f"Error LLM: {e}")
+                return {"importance": None, "summary": None}
 
-        print("\n🎯 Done! Saved importance scores to posts_with_importance.json")
-        results.append({
-            "text": post,
-            "category": best_cat,
-            "keywords": [k[0] for k in keywords],
-            "importance": importance,
-            "summary": justification,
 
-        })
+    async def process_post(self, post: dict) -> dict:
+        text = post.get("text")
+        if not text:
+            return None
 
-    # 6️⃣ Zapis wyników do pliku JSON
-    with open("posts_categorized.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
+        category = self.categorize_post(text)
+        keywords = self.extract_keywords(text)
+        evaluation = await self.evaluate_post(text)
 
-    print("Done! Wyniki zapisane w 'posts_categorized.json'")
+        post["category"] = category
+        post["keywords"] = keywords
+        post["importance"] = evaluation.get("importance")
+        post["summary"] = evaluation.get("summary")
+        post["hash"] = hashlib.md5(post["summary"].encode()).hexdigest(),
+        post["processed_at"] = datetime.utcnow().isoformat()
+
+        return post
+
+    async def analyze(self):
+        """Main func, reads from db, analyses and writes back"""
+        docs = await self.mongo.get_filtered_data(lang="pl", limit=10)
+        print(f"Found {len(docs)} documents for analysis")
+
+        tasks = [self.process_post(doc) for doc in docs]
+        results = await asyncio.gather(*tasks)
+
+        processed = [r for r in results if r is not None]
+        if processed:
+            await self.mongo.save_processed_data(processed)
+            print(f"Saved {len(processed)} documents to mongo")
+        else:
+            print("Nothing to save")

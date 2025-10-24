@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from app.llm import run
 from app.db import MongoDB
 from app.logger import setup_logger
 
@@ -43,13 +42,6 @@ async def log_requests(request: Request, call_next):
 async def initialize():
     global mongo 
     mongo = await MongoDB.create()
-
-
-@app.get('/llm')
-def read_llm():
-    logger.info('call to llm')
-    run()
-    return ""
 
 
 @app.get("/all")
