@@ -1,19 +1,59 @@
-/* App specific styles for the mobile prototype */
+/* ==============================================
+   APP CONTAINER & LAYOUT
+   ============================================== */
+
+/* Main app container with mobile-first design */
 .app {
     max-width: 480px;
     margin: 0 auto;
     background: #fff;
     color: #222;
     position: relative;
-    /* Ensure the app fills at least the viewport height so the white background continues */
-    min-height: 100vh;
-    min-height: 100dvh; /* modern mobile browsers */
-    overflow: hidden; /* Clip UI spilling outside the prototype container */
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for modern mobile browsers */
+    overflow: hidden; /* Prevent scrolling on the app container */
+    display: flex;
+    flex-direction: column;
 }
 
+/* Darker background for saved view */
+.app.saved-view {
+    background: #f9fafb;
+}
+
+.app.saved-view .app-content {
+    background: #f9fafb;
+}
+
+.app.saved-view .feed-scroll {
+    background: #f9fafb;
+}
+
+/* Content area below header */
+.app-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0; /* Important for flex children to respect overflow */
+}
+
+/* Scrollable feed container */
+.feed-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px; /* Add padding for bottom nav */
+}
+
+/* ==============================================
+   HEADER & NAVIGATION
+   ============================================== */
+
+/* Sticky header with glassmorphism effect */
 .app-header {
-    position: sticky;
-    top: 0;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -23,105 +63,285 @@
     backdrop-filter: blur(8px);
     border-bottom: 1px solid #eee;
     z-index: 10;
+    flex-shrink: 0; /* Prevent header from shrinking */
 }
+
+/* Logo in header */
+.header-logo {
+    height: 22px;
+    width: auto;
+    display: block;
+}
+
+/* Icon button for header actions */
 .icon-button {
     background: transparent;
     border: none;
     font-size: 22px;
     padding: 8px;
-}
-.greeting {
-    padding: 20px 16px 20px 16px;
-    text-align: left;
-}
-.greeting .hello {
-    font-size: 12px;
-    color: #6b7280;
-}
-.greeting h1 {
-    font-size: 24px;
-    margin: 4px 0 0 0;
-}
-.avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: #f3f4f6;
+    cursor: pointer;
 }
 
-.chips {
-    display: flex;
-    gap: 12px;
-    padding: 12px 16px 12px 16px;
-    overflow-x: auto;
+/* ==============================================
+   FILTER CHIPS
+   ============================================== */
+
+/* Filter bar container */
+.filter-bar {
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    flex-shrink: 0;
 }
-.chip {
-    border-radius: 999px;
-    background: #f3f4f6;
-    color: #111827;
+
+/* Search input */
+.filter-search {
+    margin-bottom: 12px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 12px;
     border: 1px solid #e5e7eb;
-    padding: 8px 14px;
-    white-space: nowrap;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 150ms ease;
+    box-sizing: border-box; /* Include padding and border in width calculation */
 }
-.chip.active {
-    background: #111827;
-    color: #fff;
+
+.search-input:focus {
     border-color: #111827;
 }
 
-.intro {
-    padding: 8px 16px 16px 16px;
-    color: #4b5563;
-    font-size: 14px;
+/* Filter controls row */
+.filter-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
+/* Select dropdowns */
+.filter-select {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 150ms ease;
+}
+
+.filter-select:hover,
+.filter-select:focus {
+    border-color: #111827;
+}
+
+/* Tags multi-select wrapper */
+.filter-tags-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.filter-select.tags-toggle {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Tags dropdown */
+.tags-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Tags dropdown header */
+.tags-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    background: #fff;
+}
+
+.tags-dropdown-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+}
+
+.tags-clear {
+    background: transparent;
+    border: none;
+    color: #2563eb;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: opacity 150ms ease;
+}
+
+.tags-clear:hover {
+    opacity: 0.7;
+}
+
+/* Tags dropdown list */
+.tags-dropdown-list {
+    padding: 8px;
+}
+
+/* Tag checkbox item */
+.tag-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 150ms ease;
+}
+
+.tag-checkbox-item:hover {
+    background: #f9fafb;
+}
+
+.tag-checkbox-item input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.tag-checkbox-item span {
+    font-size: 13px;
+    color: #374151;
+}
+
+/* ==============================================
+   CONTENT SECTIONS
+   ============================================== */
+
+/* Main content feed grid */
 .feed {
     display: grid;
     gap: 16px;
-    padding: 0 16px 40px 16px;
+    padding: 20px 16px 40px;
 }
 
+/* ==============================================
+   EMPTY STATE
+   ============================================== */
+
+/* Centered empty state container */
 .empty-state {
     display: grid;
     place-items: center;
     text-align: center;
-    padding: 48px 16px 64px 16px;
+    padding: 48px 16px 64px;
     color: #6b7280;
 }
+
 .empty-title {
     font-size: 20px;
     font-weight: 700;
     color: #111827;
 }
+
 .empty-subtitle {
     margin: 8px 0 16px;
     font-weight: 500;
 }
+
+/* ==============================================
+   BUTTONS
+   ============================================== */
+
+/* Primary action button */
 .primary-button {
     background: #111827;
     color: #fff;
     border: 1px solid #111827;
     border-radius: 8px;
     padding: 10px 14px;
+    cursor: pointer;
+    transition: opacity 150ms ease;
 }
 
+.primary-button:hover {
+    opacity: 0.9;
+}
+
+/* Text link button */
+.link {
+    background: transparent;
+    border: none;
+    padding: 8px 0;
+    color: #2563eb;
+    cursor: pointer;
+    transition: opacity 150ms ease;
+}
+
+.link:hover {
+    opacity: 0.8;
+}
+
+/* ==============================================
+   NEWS CARDS
+   ============================================== */
+
+/* Main news card with swipe gestures support */
 .news-card {
     position: relative;
-    padding: 12px 12px 8px 12px;
+    padding: 24px 24px 8px;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     background: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     transition: transform 300ms ease, opacity 300ms ease;
-    touch-action: pan-y; /* allow vertical scroll while enabling horizontal drag */
+    touch-action: pan-y; /* Allow vertical scroll while enabling horizontal drag */
 }
+
+/* Content wrapper for smooth height transitions */
+.news-card .news-content {
+    transition: all 300ms ease;
+}
+
+/* Card state during active drag */
 .news-card.dragging {
-    transition: none; /* snappy while dragging */
+    transition: none; /* Remove transition for snappy drag feeling */
     user-select: none;
     cursor: grabbing;
 }
+
+/* Card dismissal animation */
+.news-card.dismissing {
+    transform: translateX(-120%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Card saving animation (swipe right) */
+.news-card.saving {
+    transform: translateX(120%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Saved state badge */
 .saved-badge {
     position: absolute;
     top: 8px;
@@ -131,97 +351,168 @@
     border-radius: 999px;
     font-size: 11px;
     padding: 2px 8px;
-}
-.saved-icon {
-    width: 22px;
-    height: 22px;
-    display: block;
-}
-.news-card.dismissing {
-    transform: translateX(-120%);
-    opacity: 0;
-    pointer-events: none;
-}
-.news-card .accent {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-}
-.news-card .meta {
-    padding-left: 16px;
-    font-size: 12px;
-    color: #6b7280;
-}
-.news-card .tags {
-    padding-left: 16px;
-    margin-top: 4px;
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-.news-card .tag {
-    font-size: 11px;
-    padding: 2px 8px;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
-    color: #374151;
-    border-radius: 999px;
-}
-.news-card .row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.news-card .label {
-    text-transform: uppercase;
-    font-weight: 700;
-}
-.news-card .value.source {
-    color: #374151;
-}
-.news-card .title {
-    margin: 8px 0 6px 0;
-    padding-left: 16px;
-    font-size: 18px;
-}
-.news-card .snippet {
-    padding-left: 16px;
-    color: #374151;
-    font-size: 14px;
-}
-.news-card .actions {
-    display: flex;
-    justify-content: space-between;
-    padding-left: 16px;
-    margin-top: 6px;
-}
-.link {
-    background: transparent;
-    border: none;
-    padding: 8px 0;
-    color: #2563eb;
-}
-.link.danger {
-    color: #ef4444;
+    z-index: 1;
 }
 
+/* Saved icon */
+.saved-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+/* Impact indicator with icon and text */
+.news-card .impact-indicator {
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.news-card .impact-icon {
+    width: 10px;
+    height: auto; /* Allow natural height to accommodate flame effect on high impact */
+    display: block;
+}
+
+.news-card .impact-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6b7280;
+}
+
+/* Category badge above title */
+.news-card .category-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+/* Article title */
+.news-card .title {
+    margin: 12px 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Tag container */
+.news-card .tags {
+    margin-top: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Individual tag with # prefix */
+.news-card .tag {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Article snippet/preview text */
+.news-card .snippet {
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+/* Expanded metadata section - source left, date right */
+.news-card .meta-expanded {
+    padding: 8px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #6b7280;
+    border-top: 1px solid #f3f4f6;
+    margin-top: 8px;
+    animation: fadeIn 300ms ease;
+}
+
+.news-card .meta-expanded .source {
+    color: #2563eb;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 150ms ease;
+}
+
+.news-card .meta-expanded .source:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.news-card .meta-expanded .date {
+    color: #6b7280;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Card action buttons row */
+.news-card .actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-start;
+    margin-top: 4px;
+}
+
+/* ==============================================
+   SWIPE OVERLAY
+   ============================================== */
+
+/* Overlay shown during swipe gestures */
+.swipe-overlay {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-radius: inherit;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    z-index: 2;
+}
+
+/* ==============================================
+   SIDE DRAWER NAVIGATION
+   ============================================== */
+
+/* Backdrop overlay for drawer */
 .backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.0);
+    background: rgba(0, 0, 0, 0);
     transition: background 250ms ease, opacity 250ms ease;
     opacity: 0;
     pointer-events: none;
     z-index: 15;
 }
+
 .backdrop.show {
-    background: rgba(0,0,0,0.3);
+    background: rgba(0, 0, 0, 0.3);
     opacity: 1;
     pointer-events: auto;
 }
+
+/* Slide-in side drawer */
 .drawer {
     position: absolute;
     top: 0;
@@ -236,9 +527,12 @@
     z-index: 20;
     display: grid;
 }
+
 .drawer.open {
     transform: translateX(0);
 }
+
+/* Drawer close button */
 .drawer-close {
     position: absolute;
     top: 8px;
@@ -249,58 +543,122 @@
     padding: 8px;
     line-height: 1;
     border-radius: 6px;
+    cursor: pointer;
+    transition: background 150ms ease;
 }
+
 .drawer-close:hover {
     background: #f3f4f6;
 }
+
+/* Drawer menu container */
 .menu {
     display: flex;
     flex-direction: column;
     min-height: 100%;
     align-items: stretch;
 }
-.menu-header {
-    padding: 16px;
-    border-bottom: 1px solid #f3f4f6;
-}
-.mock-logo {
-    width: 64px;
-    height: 32px;
-    border-radius: 6px;
-    border: 1px dashed #9ca3af;
-    color: #6b7280;
-    display: grid;
-    place-items: center;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+
+/* Menu items container */
 .menu-items {
     display: grid;
     padding: 8px;
     gap: 4px;
+    margin-top: 48px; /* Add top margin for close button spacing */
 }
+
+/* Menu item grouping box */
 .menu-box {
-    border: 1px solid #e5e7eb;
     border-radius: 10px;
     background: #fff;
 }
+
+/* Individual menu item button */
 .menu-item {
     text-align: left;
     background: transparent;
     border: none;
-    padding: 12px 12px;
+    outline: none;
+    padding: 12px;
     border-radius: 8px;
     font-size: 16px;
+    cursor: pointer;
+    transition: background 150ms ease;
 }
+
 .menu-item:hover {
     background: #f9fafb;
 }
+
 .menu-item.danger {
     color: #ef4444;
 }
+
+/* Drawer footer section */
 .menu-footer {
+    margin-top: auto;
     padding: 8px;
     border-top: 1px solid #f3f4f6;
 }
 
+/* ==============================================
+   BOTTOM NAVIGATION
+   ============================================== */
+
+/* Bottom navigation bar */
+.bottom-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 8px 16px 12px;
+    background: #ffffffcc;
+    backdrop-filter: blur(8px);
+    border-top: 1px solid #eee;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+/* Individual navigation item */
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 8px 24px;
+    cursor: pointer;
+    transition: opacity 150ms ease;
+}
+
+.nav-item:hover {
+    opacity: 0.7;
+}
+
+/* Navigation icon */
+.nav-icon {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+/* Navigation label */
+.nav-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.nav-item.active .nav-label {
+    color: #111827;
+    font-weight: 600;
+}
+
+/* ==============================================
+   DESIGN TOKENS
+   ============================================== */
+
+:root {
+    --brand-blue: #0046ff; /* Primary brand color */
+}
