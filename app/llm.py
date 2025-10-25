@@ -28,11 +28,10 @@ class PostAnalyzer:
         self.kw_model = KeyBERT('all-MiniLM-L6-v2')
 
         self.categories = {
-            "Market Trends": "Posts about telecom market trends, consumer behavior, market insights, competitive analysis",
-            "Product Launches": "Posts about new products, services, features, technology releases in telecom",
-            "Customer Feedback": "Posts about customer reviews, complaints, satisfaction, opinions",
-            "Marketing Campaigns": "Posts about marketing campaigns, ads, promotions, social media strategies",
-            "Sales & Partnerships": "Posts about sales deals, partnerships, collaborations, revenue updates"
+            "Regulatory": "Posts about regulations, policies, and government decisions",
+            "Competition": "Posts about competitors, market rivalry, and industry players",
+            "Technology": "Posts about technology, innovations, and infrastructure",
+            "Market": "Posts about market trends, growth, and consumer dynamics"
         }
 
         self.category_embeddings = {
@@ -63,15 +62,15 @@ class PostAnalyzer:
         """sends a request to LLM"""
         prompt = f"""
         You are an expert in marketing and sales within the telecommunications industry.
-        Evaluate, on a scale from 0 to 5, how important this post is for a C-level marketing manager not just for strategic changes but a following brand name - "Play".
-        And under brand recognition. 
-        Also provide a one-sentence summary.
-        Do not mention that news are useful or not, just give the driest summary possible. 
+        Evaluate, on a scale from 0 to 5, how relevant this post is to the Play brand under brand recognition or strategic context.
+        Keep the summary concise and factual, main idea of the post must be noticed.
+        Just give the driest summary possible. 
+        Don't mention relevance to Play
         Post text:
         "{post}"
 
         Respond in JSON format:
-        {{"title":title of the article simplified without 'noise'", "importance": number between 0 and 5, "summary": "one-sentence description"}}
+        {{"title":title of the article simplified without 'noise'", "importance": number between 0 and 5, "summary": "one-sentence brief description"}}
         """
 
         async with self.semaphore:
@@ -79,7 +78,7 @@ class PostAnalyzer:
                 response = await self.client.chat.completions.create(
                     model="qwen3-235b-a22b-instruct-2507",
                     messages=[{"role": "user", "content": prompt}],
-                    temperature=0.3,
+                    temperature=0.4,
                     max_tokens=100
                 )
 
