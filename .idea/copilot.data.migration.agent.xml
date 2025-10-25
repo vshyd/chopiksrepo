@@ -2,6 +2,7 @@
 <project version="4">
   <component name="AgentMigrationStateService">
     <option name="pendingSessionIds">
+      <option value="59e8d2df-fcfc-45af-a84d-597c7faf5470" />
       <option value="d7d9ea2e-07ee-4392-b92b-5af829af731a" />
     </option>
     <option name="pendingTurns">
@@ -13,6 +14,10 @@
               <option value="bf85a723-2093-4e57-a25e-84e46ef1c122" />
               <option value="97059008-a831-4b56-bd50-34b79b418be4" />
               <option value="098035c8-cc2c-4be5-bd04-7d00955cd7cb" />
+              <option value="5c8f2229-7035-4d1e-b59a-2c1e96063ddf" />
+              <option value="3ae0a9f0-12e8-4f5e-ae44-7f61b965ef62" />
+              <option value="962ae6a8-3701-46d2-858b-e789e367e933" />
+              <option value="fba38ad7-01f9-4959-8dc6-5eac9a0384b7" />
             </set>
           </value>
         </entry>
@@ -24,6 +29,8 @@
           <option value="file://$PROJECT_DIR$/frontend/src/App.jsx" />
           <option value="file://$PROJECT_DIR$/frontend/src/api.js" />
           <option value="file://$PROJECT_DIR$/frontend/.env.local" />
+          <option value="file://$PROJECT_DIR$/frontend/src/Register.jsx" />
+          <option value="file://$PROJECT_DIR$/frontend/src/Register.css" />
         </set>
       </entry>
     </pendingWorkingSetItems>

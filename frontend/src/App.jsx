@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import './App.css'
 import { fetchArticles, transformArticleData } from './api'
+import Register from './Register'
 
 // ==============================================
 // CONSTANTS & DATA
@@ -99,7 +100,7 @@ function BottomNav({ activeView, onNavigate }) {
 /**
  * Slide-in navigation drawer with menu items
  */
-function Drawer({ open, onClose, onProfile, onHistory, onSettings, onLogout }) {
+function Drawer({ open, onClose, onProfile, onHistory, onSettings, onRegister, onLogout }) {
     // Close drawer on Escape key press
     useEffect(() => {
         function onKey(e) {
@@ -123,6 +124,7 @@ function Drawer({ open, onClose, onProfile, onHistory, onSettings, onLogout }) {
                         <button className="menu-item" onClick={() => { onProfile(); onClose(); }}>Profile</button>
                         <button className="menu-item" onClick={() => { onHistory(); onClose(); }}>History</button>
                         <button className="menu-item" onClick={() => { onSettings(); onClose(); }}>Settings</button>
+                        <button className="menu-item" onClick={() => { onRegister(); onClose(); }}>Register New Account</button>
                     </nav>
 
                     {/* Footer with logout */}
@@ -425,7 +427,7 @@ function NewsItem({ item, onDismiss, onSave, isSaved, showSavedBadge }) {
                 {/* Metadata - only show when expanded */}
                 {isExpanded && (
                     <div className="meta-expanded">
-                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="source">
+                        <a href={item.source} target="_blank" rel="noopener noreferrer" className="source">
                             src: {item.source}
                         </a>
                         <span className="date">{item.date}</span>
@@ -558,6 +560,7 @@ function App() {
     // UI state
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [view, setView] = useState('main')
+    const [showRegister, setShowRegister] = useState(false)
 
     // Fetch articles from API on mount
     useEffect(() => {
@@ -640,7 +643,18 @@ function App() {
     const goProfile = useCallback(() => alert('Profile page coming soon'), [])
     const goHistory = useCallback(() => alert('History page coming soon'), [])
     const goSettings = useCallback(() => alert('Settings page coming soon'), [])
+    const goRegister = useCallback(() => setShowRegister(true), [])
+    const handleRegister = useCallback((formData) => {
+        console.log('User registered:', formData)
+        setShowRegister(false)
+    }, [])
+    const handleBackToApp = useCallback(() => setShowRegister(false), [])
     const doLogout = useCallback(() => alert('Logged out (placeholder)'), [])
+
+    // Show registration page if requested
+    if (showRegister) {
+        return <Register onRegister={handleRegister} onBackToLogin={handleBackToApp} />
+    }
 
     return (
         <div className={`app ${view === 'saved' ? 'saved-view' : ''}`}>
@@ -652,6 +666,7 @@ function App() {
                 onProfile={goProfile}
                 onSettings={goSettings}
                 onHistory={goHistory}
+                onRegister={goRegister}
                 onLogout={doLogout}
             />
 
