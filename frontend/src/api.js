@@ -64,11 +64,13 @@ export function transformArticleData(apiArticles) {
         }
         const category = categoryMap[article.category] || 'Market'
 
-        // Determine impact based on importance_score
+        // Convert numeric importance (0-5) to High/Medium/Low
+        // 0-1: Low, 2-3: Medium, 4-5: High
         let impact = 'Low'
-        if (article.importance_score >= 8) {
+        const importance = article.importance ?? 0
+        if (importance >= 4) {
             impact = 'High'
-        } else if (article.importance_score >= 5) {
+        } else if (importance >= 2) {
             impact = 'Medium'
         }
 
