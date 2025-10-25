@@ -1,12 +1,12 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import './App.css'
+import { fetchArticles, transformArticleData } from './api'
 
 // ==============================================
 // CONSTANTS & DATA
 // ==============================================
 
 const CATEGORIES = ['All', 'Regulatory', 'Competition', 'Technology', 'Market']
-const ALL_TAGS = ['EU Policy', 'Data Privacy', 'Compliance', 'AI', 'Customer Service', 'Automation', 'Pricing', '5G', 'Market Share', 'MVNO', 'Wholesale', 'UKE', 'Bundling', 'Streaming', 'Family Plans', 'M&A', 'UK Market', 'Consolidation', 'Open RAN', 'Infrastructure', 'Innovation', 'Churn', 'Youth Segment', 'Retention']
 
 const IMPACT_ORDER = { High: 3, Medium: 2, Low: 1 }
 
@@ -22,104 +22,6 @@ const IMPACT_LABELS = {
     Low: 'Low',
 }
 
-const MOCK_NEWS = [
-    {
-        id: 1,
-        source: 'gov.pl',
-        link: 'https://ec.europa.eu/commission/presscorner/detail/en/ip_2024_data_act',
-        category: 'Regulatory',
-        title: 'EU Data Act: telco data-sharing rules finalized',
-        snippet: 'New obligations on data portability; assess compliance cost and timelines.',
-        summary: 'The European Commission has finalized implementing regulations under the Data Act, establishing mandatory data-sharing frameworks for telecommunications providers. New obligations require telcos to provide standardized APIs for customer data portability within 30 days of request. Compliance timeline set for Q2 2026, with significant penalties for non-compliance. Legal and technical teams should assess infrastructure readiness and budget implications immediately.',
-        date: '01.10.25 12:42',
-        impact: 'High',
-        tags: ['EU Policy', 'Data Privacy', 'Compliance'],
-    },
-    {
-        id: 2,
-        source: 'play.pl',
-        link: 'https://www.play.pl/o-firmie/aktualnosci/ai-chatbot-launch',
-        category: 'Technology',
-        title: 'Play launches AI care bot across channels',
-        snippet: 'Target: 25% deflection; expect shorter AHT and lower care OPEX.',
-        summary: 'Play has deployed an advanced AI-powered customer service bot across web, mobile app, and messaging platforms. The operator targets 25% call deflection rate within six months, projecting significant reductions in average handle time (AHT) and overall customer care operating expenses. Initial tests show 30% faster resolution for routine inquiries. Competitive pressure mounting for similar automation investments.',
-        date: '24.10.25 08:10',
-        impact: 'Medium',
-        tags: ['AI', 'Customer Service', 'Automation'],
-    },
-    {
-        id: 3,
-        source: 'orange.pl',
-        link: 'https://www.orange.pl/news/5g-pricing-update',
-        category: 'Competition',
-        title: 'Orange drops 5G premium on entry plan',
-        snippet: 'Downward pressure on ARPU; review pricing ladders this quarter.',
-        summary: 'Orange Poland has eliminated the 5G premium surcharge on its entry-level postpaid plan, now offering 5G access at base price point of 39 PLN. This aggressive move creates downward ARPU pressure across the market and forces competitors to reconsider pricing strategies. The decision follows market share losses in the youth segment. Immediate review of pricing ladders and promotional strategies recommended.',
-        date: '23.10.25 16:20',
-        impact: 'High',
-        tags: ['Pricing', '5G', 'Market Share'],
-    },
-    {
-        id: 4,
-        source: 'uar.gov.pl',
-        link: 'https://www.uke.gov.pl/consultations/mvno-access-2025',
-        category: 'Regulatory',
-        title: 'UKE consults MVNO access guidelines',
-        snippet: 'Potential wholesale rate changes; MVNO negotiations may accelerate.',
-        summary: 'Polish telecom regulator UKE has opened public consultation on updated MVNO (Mobile Virtual Network Operator) wholesale access guidelines. Proposed changes include mandatory cost-oriented wholesale rates and shortened negotiation timelines. If adopted, expect accelerated MVNO market entry and potential wholesale revenue pressure. MNOs should prepare position papers and engage in consultation process before February deadline.',
-        date: '22.10.25 10:05',
-        impact: 'Medium',
-        tags: ['MVNO', 'Wholesale', 'UKE'],
-    },
-    {
-        id: 5,
-        source: 'press.t-mobile.pl',
-        link: 'https://www.t-mobile.pl/en/news/netflix-bundle-family-plans',
-        category: 'Competition',
-        title: 'T‑Mobile pilots family bundle with Netflix',
-        snippet: 'Content bundle arms race; assess parity options with partners.',
-        summary: 'T-Mobile Poland is piloting a family plan bundle including Netflix Standard subscription at no additional cost for customers on 99 PLN+ plans. This marks escalation in content bundling wars and threatens competitive positioning for players without similar partnerships. Early customer response shows strong interest in converged entertainment offerings. Strategic review of content partnership options and pricing parity measures urgently needed.',
-        date: '21.10.25 09:32',
-        impact: 'Medium',
-        tags: ['Bundling', 'Streaming', 'Family Plans'],
-    },
-    {
-        id: 6,
-        source: 'reuters.com',
-        link: 'https://www.reuters.com/business/media-telecom/vodafone-three-uk-merger-approved-2025-10-20',
-        category: 'Market',
-        title: 'Vodafone–Three UK merger gets CMA nod',
-        snippet: 'Regional consolidation momentum; watch spectrum and tower impacts.',
-        summary: 'UK Competition and Markets Authority (CMA) has conditionally approved the Vodafone-Three UK merger, creating Britain\'s largest mobile operator with 27M customers. Conditions include network investment commitments and temporary wholesale pricing caps. This approval signals regulatory openness to consolidation in mature European markets. Monitor implications for spectrum redistribution, tower sharing agreements, and potential M&A scenarios in Polish market.',
-        date: '20.10.25 14:11',
-        impact: 'High',
-        tags: ['M&A', 'UK Market', 'Consolidation'],
-    },
-    {
-        id: 7,
-        source: 'gsma.com',
-        link: 'https://www.gsma.com/futurenetworks/open-ran-cee-deployments',
-        category: 'Technology',
-        title: 'Open RAN trials expand across CEE',
-        snippet: 'Capex deferral opportunity; vendor diversification risks.',
-        summary: 'Multiple Central and Eastern European operators are expanding Open RAN trials, with deployments now covering over 1,500 sites across the region. Open RAN architecture promises 30-40% capex reduction and multi-vendor flexibility, but introduces integration complexity and potential performance trade-offs. Technology maturity improving rapidly with major vendors entering the space. Network planning teams should evaluate pilot opportunities for 2026 network expansion.',
-        date: '19.10.25 12:45',
-        impact: 'Low',
-        tags: ['Open RAN', 'Infrastructure', 'Innovation'],
-    },
-    {
-        id: 8,
-        source: 'benchmarking.telecom',
-        link: 'https://benchmarking.telecom/reports/q3-2025-churn-analysis',
-        category: 'Market',
-        title: 'Postpaid churn ticks up Q3',
-        snippet: 'Early churn signals in youth segment; action needed on retention.',
-        summary: 'Industry benchmarking data reveals postpaid churn increased 0.4 percentage points to 1.8% in Q3 2025, with youth segment (18-25) showing highest volatility at 2.3%. Primary drivers include aggressive promotional activity and improved digital switching processes. Operators with outdated value propositions for younger customers seeing disproportionate losses. Retention teams should prioritize youth segment analysis and targeted intervention campaigns.',
-        date: '18.10.25 17:20',
-        impact: 'High',
-        tags: ['Churn', 'Youth Segment', 'Retention'],
-    },
-]
 
 import savedIcon from './assets/saved.svg'
 import savedOnIcon from './assets/saved_on.svg'
@@ -301,7 +203,7 @@ function filterAndSortItems(items, { search, category, selectedTags, sortBy, exc
 /**
  * Filter bar with search, category, tags, and sort controls
  */
-function FilterBar({ search, onSearchChange, category, onCategoryChange, selectedTags, onTagsChange, sortBy, onSortChange }) {
+function FilterBar({ search, onSearchChange, category, onCategoryChange, selectedTags, onTagsChange, sortBy, onSortChange, allTags = [] }) {
     const [tagsDropdownOpen, setTagsDropdownOpen] = useState(false)
     const tagsRef = useRef(null)
 
@@ -371,7 +273,7 @@ function FilterBar({ search, onSearchChange, category, onCategoryChange, selecte
                                 )}
                             </div>
                             <div className="tags-dropdown-list">
-                                {ALL_TAGS.map(tag => (
+                                {allTags.map(tag => (
                                     <label key={tag} className="tag-checkbox-item">
                                         <input
                                             type="checkbox"
@@ -638,6 +540,11 @@ function SavedFeed({ items, onDismiss, onSave, saved }) {
 // ==============================================
 
 function App() {
+    // Data state
+    const [articles, setArticles] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+
     // Filter state
     const [search, setSearch] = useState('')
     const [category, setCategory] = useState('All')
@@ -652,6 +559,36 @@ function App() {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [view, setView] = useState('main')
 
+    // Fetch articles from API on mount
+    useEffect(() => {
+        async function loadArticles() {
+            try {
+                setLoading(true)
+                const apiData = await fetchArticles()
+                const transformedData = transformArticleData(apiData)
+                setArticles(transformedData)
+                setError(null)
+            } catch (err) {
+                console.error('Failed to load articles:', err)
+                setError('Failed to load news. Please try again later.')
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadArticles()
+    }, [])
+
+    // Extract all unique tags from articles
+    const allTags = useMemo(() => {
+        const tagsSet = new Set()
+        articles.forEach(article => {
+            if (article.tags && Array.isArray(article.tags)) {
+                article.tags.forEach(tag => tagsSet.add(tag))
+            }
+        })
+        return Array.from(tagsSet).sort()
+    }, [articles])
+
     // Memoize filter criteria object
     const filterCriteria = useMemo(() => ({
         search,
@@ -664,14 +601,14 @@ function App() {
 
     // Filter and sort items for main feed
     const filtered = useMemo(() =>
-        filterAndSortItems(MOCK_NEWS, { ...filterCriteria, excludeSaved: true }),
-        [filterCriteria]
+        filterAndSortItems(articles, { ...filterCriteria, excludeSaved: true }),
+        [articles, filterCriteria]
     )
 
     // Filter and sort saved items
     const savedItems = useMemo(() =>
-        filterAndSortItems(MOCK_NEWS, { ...filterCriteria, onlySaved: true }),
-        [filterCriteria]
+        filterAndSortItems(articles, { ...filterCriteria, onlySaved: true }),
+        [articles, filterCriteria]
     )
 
     const showEmpty = filtered.length === 0
@@ -719,7 +656,22 @@ function App() {
             />
 
             <div className="app-content">
-                {view === 'main' ? (
+                {loading ? (
+                    <div className="loading-state" role="status" aria-live="polite">
+                        <div>Loading news...</div>
+                    </div>
+                ) : error ? (
+                    <div className="error-state" role="alert">
+                        <div className="error-title">Error</div>
+                        <div className="error-message">{error}</div>
+                        <button
+                            className="primary-button"
+                            onClick={() => window.location.reload()}
+                        >
+                            Retry
+                        </button>
+                    </div>
+                ) : view === 'main' ? (
                     <>
                         <FilterBar
                             search={search}
@@ -730,6 +682,7 @@ function App() {
                             onTagsChange={setSelectedTags}
                             sortBy={sortBy}
                             onSortChange={setSortBy}
+                            allTags={allTags}
                         />
 
                         <div className="feed-scroll">
@@ -754,6 +707,7 @@ function App() {
                             onTagsChange={setSelectedTags}
                             sortBy={sortBy}
                             onSortChange={setSortBy}
+                            allTags={allTags}
                         />
 
                         <div className="feed-scroll">

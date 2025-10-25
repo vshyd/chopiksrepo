@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AgentMigrationStateService">
+    <option name="pendingTurns">
+      <map>
+        <entry key="d7d9ea2e-07ee-4392-b92b-5af829af731a">
+          <value>
+            <set>
+              <option value="735cd2c2-555d-4d04-9b5f-445804022c02" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <pendingWorkingSetItems>
+      <entry key="d7d9ea2e-07ee-4392-b92b-5af829af731a">
+        <set>
+          <option value="file://$PROJECT_DIR$/frontend/src/App.jsx" />
+          <option value="file://$PROJECT_DIR$/frontend/src/api.js" />
+          <option value="file://$PROJECT_DIR$/frontend/.env.local" />
+        </set>
+      </entry>
+    </pendingWorkingSetItems>
+  </component>
+</project>
