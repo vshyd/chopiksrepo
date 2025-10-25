@@ -85,7 +85,7 @@ class MongoDB:
         if text_contains:
             query["text"] = {"$regex": text_contains, "$options": "i"}
 
-        cursor = self.raw_data_collection.find(query).limit(limit)
+        cursor = self.processed_data_collection.find(query).limit(limit)
         docs = []
         async for doc in cursor:
             doc["_id"] = str(doc["_id"])

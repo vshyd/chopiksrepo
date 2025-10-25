@@ -63,13 +63,15 @@ class PostAnalyzer:
         """sends a request to LLM"""
         prompt = f"""
         You are an expert in marketing and sales within the telecommunications industry.
-        Evaluate, on a scale from 0 to 10, how important this post is for a C-level manager.
+        Evaluate, on a scale from 0 to 5, how important this post is for a C-level marketing manager not just for strategic changes but a following brand name - "Play".
+        And under brand recognition. 
         Also provide a one-sentence summary.
+        Do not mention that news are useful or not, just give the driest summary possible. 
         Post text:
         "{post}"
 
         Respond in JSON format:
-        {{"importance": number between 0 and 10, "summary": "one-sentence description"}}
+        {{"title":title of the article simplified without 'noise'", "importance": number between 0 and 5, "summary": "one-sentence description"}}
         """
 
         async with self.semaphore:
@@ -95,6 +97,7 @@ class PostAnalyzer:
 
     async def process_post(self, post: dict) -> dict:
         text = post.get('text')
+        source = post.get('url')
         if not text:
             return None
 
@@ -103,7 +106,7 @@ class PostAnalyzer:
         evaluation = await self.evaluate_post(text)
 
         post = {}
-
+        post["title"] = evaluation.get("title")
         post["category"] = category
         post["keywords"] = keywords
         post["importance"] = evaluation.get("importance")
@@ -111,6 +114,7 @@ class PostAnalyzer:
         post["hash"] = hashlib.md5(post["summary"].encode()).hexdigest()
         post["processed_at"] = datetime.utcnow().isoformat()
         post["status"] = "done"
+        post["source"] = source
 
         return post
 

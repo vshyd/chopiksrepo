@@ -109,10 +109,14 @@ class NewsScraper:
 
 async def main():
     FEEDS = [
-        "https://wiadomosci.onet.pl/rss.html",
-        "https://wiadomosci.gazeta.pl/pub/rss/wiadomosci.xml",
-        "https://tvn24.pl/najnowsze.xml",
-        "https://feeds.bbci.co.uk/news/world/europe/rss.xml",
+        "https://www.finextra.com/rss/headlines.aspx",
+        "https://www.fintechfutures.com/feed/",
+        "https://www.pymnts.com/feed/",
+        "https://www.thefintechtimes.com/feed/",
+        "https://www.telecomstechnews.com/feed/",
+        "https://www.telecomlead.com/feed",
+        "https://telecoms.com/feed/",
+        "https://www.mobileworldlive.com/latest-stories/feed/"
     ]
     scraper = NewsScraper(FEEDS, concurrency=15)
     await scraper.init()
