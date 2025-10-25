@@ -49,7 +49,6 @@ class MongoDB:
             self.logger.warning(f"Error inserting documents: {e}")
 
     
-
     async def save_processed_data(self, data:list[dict]):
         if not data:
             return 
@@ -62,7 +61,7 @@ class MongoDB:
 
     async def get_data(self):
         self.logger.info("Going to retrieve docs:")
-        cursor = self.raw_data_collection.find({})
+        cursor = self.processed_data_collection.find({})
         docs = []
         async for doc in cursor:
             doc["_id"] = str(doc["_id"])

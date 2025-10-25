@@ -6,6 +6,7 @@ from keybert import KeyBERT
 from openai import AsyncOpenAI
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timedelta
+import hashlib
 
 from app.db import MongoDB 
 from app.logger import setup_logger
@@ -93,7 +94,7 @@ class PostAnalyzer:
 
 
     async def process_post(self, post: dict) -> dict:
-        text = post.get("text")
+        text = post.get('text')
         if not text:
             return None
 
@@ -101,26 +102,37 @@ class PostAnalyzer:
         keywords = self.extract_keywords(text)
         evaluation = await self.evaluate_post(text)
 
+        post = {}
+
         post["category"] = category
         post["keywords"] = keywords
         post["importance"] = evaluation.get("importance")
         post["summary"] = evaluation.get("summary")
-        post["hash"] = hashlib.md5(post["summary"].encode()).hexdigest(),
+        post["hash"] = hashlib.md5(post["summary"].encode()).hexdigest()
         post["processed_at"] = datetime.utcnow().isoformat()
+        post["status"] = "done"
 
         return post
 
+
     async def analyze(self):
         """Main func, reads from db, analyses and writes back"""
-        docs = await self.mongo.get_filtered_data(lang="pl", limit=10)
-        print(f"Found {len(docs)} documents for analysis")
+        while True:
+            doc = await self.mongo.raw_data_collection.find_one_and_update(
+                    {"status": "new"},
+                    {"$set": {"status": "processing"}},
+                    return_document=False
+                )
 
-        tasks = [self.process_post(doc) for doc in docs]
-        results = await asyncio.gather(*tasks)
+            if not doc:
+                await asyncio.sleep(10)
+                continue
 
-        processed = [r for r in results if r is not None]
-        if processed:
-            await self.mongo.save_processed_data(processed)
-            print(f"Saved {len(processed)} documents to mongo")
-        else:
-            print("Nothing to save")
+            
+            self.logger.info(f"Found 1 documents for analysis")
+            processed = await self.process_post(doc)
+            
+            if processed:
+                await self.mongo.save_processed_data([processed])
+            else:
+                self.logger.info("Nothing to save")

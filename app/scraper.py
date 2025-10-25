@@ -79,7 +79,6 @@ class NewsScraper:
 
 
     async def run(self):
-        """Main loop: collects news and writes it to Mongo"""
         if not self.session or not self.mongo:
             await self.init()
 
@@ -89,13 +88,23 @@ class NewsScraper:
             for entry in feed.entries:
                 tasks.append(self.process_url(entry.link))
 
-        results = await asyncio.gather(*tasks)
-        articles = [doc for doc in results if doc]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        articles = [r for r in results if isinstance(r, dict)]
 
-        await self.mongo.save_data(articles)
-        self.logger.info(f"✅ Scraped and saved {len(articles)} articles.")
+        for art in articles:
+            art["status"] = "new"
+            art["created_at"] = datetime.utcnow()
+
+        if articles:
+            await self.mongo.save_data(articles)
+            self.logger.info(f"Saved {len(articles)} new articles.")
+        else:
+            self.logger.info("No new valid articles.")
+        
+        await asyncio.sleep(1)
 
         await self.close()
+
 
 
 async def main():
@@ -107,8 +116,10 @@ async def main():
     ]
     scraper = NewsScraper(FEEDS, concurrency=15)
     await scraper.init()
-    await scraper.run()
-
+    await asyncio.gather(
+        scraper.run(),          
+        scraper.post_analyzer.analyze()  
+    )
 
 if __name__ == '__main__':
     asyncio.run(main())
